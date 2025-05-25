@@ -20,10 +20,7 @@ async function handleResponse(response: Response) {
 export async function fetchApi(endpoint: string, options: RequestOptions = {}) {
   const { requiresAuth = true, ...fetchOptions } = options;
 
-  const headers = new Headers({
-    "Content-Type": "application/json",
-    ...(fetchOptions.headers as Record<string, string>),
-  });
+  let headers = new Headers(fetchOptions.headers as Record<string, string>);
 
   if (requiresAuth) {
     const token = localStorage.getItem("token");
@@ -31,7 +28,12 @@ export async function fetchApi(endpoint: string, options: RequestOptions = {}) {
       window.location.href = "/login";
       throw new Error("Oturum bulunamadı. Lütfen giriş yapın.");
     }
-    headers.append("Authorization", `Bearer ${token}`);
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const method = (fetchOptions.method || "GET").toUpperCase();
+  if (["POST", "PUT", "DELETE"].includes(method)) {
+    headers.set("Content-Type", "application/json");
   }
 
   const response = await fetch(endpoint, {
