@@ -10,9 +10,11 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, token } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  if (!token) return null;
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    i18n.changeLanguage(e.target.value);
+  };
 
   const handleLogout = useCallback(() => {
     logout();
@@ -28,13 +30,15 @@ export default function Header() {
     [pathname]
   );
 
+  if (!token) return null;
+
   return (
     <header className="bg-white shadow">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between  py-4">
+        <div className="flex justify-between py-4">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-gray-900">RMOS Dashboard</h1>
-            <nav className="flex space-x-4 ">
+            <nav className="flex space-x-4">
               <Link
                 href="/forecast"
                 className={`px-4 py-2 text-white rounded-md transition-colors ${isActive(
@@ -53,12 +57,22 @@ export default function Header() {
               </Link>
             </nav>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            {t("common.logout")}
-          </button>
+          <div className="flex justify-between items-center gap-4">
+            <select
+              onChange={handleLanguageChange}
+              value={i18n.language}
+              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
+            >
+              <option value="tr">{t("common.turkish")}</option>
+              <option value="en">{t("common.english")}</option>
+            </select>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              {t("common.logout")}
+            </button>
+          </div>
         </div>
       </div>
     </header>

@@ -6,6 +6,8 @@ import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import { toDisplayDate } from "@/utils/utils";
 import { useNotificationStore } from "@/stores/notificationStore";
+import { useTranslation } from "react-i18next";
+import FormField from "@/components/FormField";
 
 interface ApiResponse<T> {
   value: T;
@@ -56,6 +58,8 @@ export default function BlacklistPage() {
   );
   const [newRecord, setNewRecord] =
     useState<Partial<BlacklistData>>(initialForm);
+  const [isFilterVisible, setIsFilterVisible] = useState(true);
+  const { t } = useTranslation();
 
   const fetchData = useCallback(
     async (params = form) => {
@@ -92,7 +96,11 @@ export default function BlacklistPage() {
   );
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
       const { name, value } = e.target;
       setForm((prev) => ({ ...prev, [name]: value }));
     },
@@ -114,7 +122,11 @@ export default function BlacklistPage() {
   }, [fetchData]);
 
   const handleNewChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
       const { name, value } = e.target;
       setNewRecord((prev) => ({ ...prev, [name]: value }));
     },
@@ -193,102 +205,105 @@ export default function BlacklistPage() {
   const memoizedNewRecord = useMemo(() => newRecord, [newRecord]);
 
   useEffect(() => {
-    if (token) fetchData();
-  }, [token, fetchData]);
+    if (token) {
+      fetchData(initialForm);
+    }
+  }, [token]);
 
   return (
     <div className="h-[calc(100vh-72px-2rem)] max-w-[calc(100vw-47px)] w-full bg-white/90 rounded-xl shadow-lg p-6 md:p-10 flex flex-col m-4">
-      <h1 className="text-3xl font-bold mb-6 text-blue-800 tracking-tight">
-        Blacklist
-      </h1>
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"
-      >
-        <div>
-          <label className="block text-xs font-semibold mb-1 text-blue-800">
-            Adı
-          </label>
-          <input
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-blue-800 tracking-tight">
+          {t("blacklist.title")}
+        </h1>
+        <button
+          onClick={() => setIsFilterVisible(!isFilterVisible)}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+        >
+          <span className="text-sm font-medium">
+            {isFilterVisible ? t("common.hideFilter") : t("common.showFilter")}
+          </span>
+          <svg
+            className={`w-4 h-4 transform transition-transform ${
+              isFilterVisible ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {isFilterVisible && (
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"
+        >
+          <FormField
             name="Ad"
             value={memoizedForm.Ad || ""}
             onChange={handleChange}
-            className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+            label="blacklist.name"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1 text-blue-800">
-            Soyadı
-          </label>
-          <input
+          <FormField
             name="Soyadi"
             value={memoizedForm.Soyadi || ""}
             onChange={handleChange}
-            className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+            label="blacklist.surname"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1 text-blue-800">
-            Doğum Tarihi
-          </label>
-          <input
+          <FormField
             name="DogumTarihi"
-            type="date"
             value={memoizedForm.DogumTarihi || ""}
             onChange={handleChange}
-            className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+            label="blacklist.birthDate"
+            type="date"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1 text-blue-800">
-            Kimlik No
-          </label>
-          <input
+          <FormField
             name="KimlikNo"
             value={memoizedForm.KimlikNo || ""}
             onChange={handleChange}
-            className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+            label="blacklist.idNumber"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1 text-blue-800">
-            TCKN
-          </label>
-          <input
+          <FormField
             name="TCKN"
             value={memoizedForm.TCKN || ""}
             onChange={handleChange}
-            className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+            label="blacklist.TCKN"
           />
-        </div>
-        <div className="md:col-span-3 flex gap-2 mt-2">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-blue-700 transition"
-          >
-            Filtrele
-          </button>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold text-xs shadow hover:bg-gray-400 transition"
-          >
-            Temizle
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setModalMode("add");
-              setNewRecord(initialForm);
-              setShowModal(true);
-            }}
-            className="bg-green-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-green-700 transition"
-          >
-            Yeni Kayıt
-          </button>
-        </div>
-        {error && <div className="text-red-500 col-span-3">{error}</div>}
-      </form>
+          <div className="md:col-span-3 flex gap-2 mt-2">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-blue-700 transition"
+            >
+              {loading ? t("common.loading") : t("common.filter")}
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              className="bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold text-xs shadow hover:bg-gray-400 transition"
+            >
+              {t("common.clear")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setModalMode("add");
+                setNewRecord(initialForm);
+                setShowModal(true);
+              }}
+              className="bg-green-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-green-700 transition"
+            >
+              {t("common.newRecord")}
+            </button>
+          </div>
+          {error && <div className="text-red-500 col-span-3">{error}</div>}
+        </form>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -306,101 +321,72 @@ export default function BlacklistPage() {
               onSubmit={handleAdd}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Adı</label>
-                <input
-                  name="Ad"
-                  value={memoizedNewRecord.Ad || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Soyadı</label>
-                <input
-                  name="Soyadi"
-                  value={memoizedNewRecord.Soyadi || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">TCKN</label>
-                <input
-                  name="TCKN"
-                  value={memoizedNewRecord.TCKN || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Kimlik No</label>
-                <input
-                  name="KimlikNo"
-                  value={memoizedNewRecord.KimlikNo || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Doğum Tarihi</label>
-                <input
-                  name="DogumTarihi"
-                  type="date"
-                  value={memoizedNewRecord.DogumTarihi || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1 col-span-2">
-                <label className="text-xs text-gray-500">Açıklama</label>
-                <textarea
-                  name="Aciklama"
-                  value={memoizedNewRecord.Aciklama || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                  rows={2}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Sistem Grubu</label>
-                <input
-                  name="Sistem_grubu"
-                  value={memoizedNewRecord.Sistem_grubu || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Otel Kodu</label>
-                <input
-                  name="Otel_kodu"
-                  value={memoizedNewRecord.Otel_kodu || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Ülke XML</label>
-                <input
-                  name="Ulke_xml"
-                  value={memoizedNewRecord.Ulke_xml || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Acenta</label>
-                <input
-                  name="Acenta"
-                  value={memoizedNewRecord.Acenta || ""}
-                  onChange={handleNewChange}
-                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                />
-              </div>
+              <FormField
+                name="Ad"
+                value={memoizedNewRecord.Ad || ""}
+                onChange={handleNewChange}
+                label="blacklist.name"
+                required
+              />
+              <FormField
+                name="Soyadi"
+                value={memoizedNewRecord.Soyadi || ""}
+                onChange={handleNewChange}
+                label="blacklist.surname"
+                required
+              />
+              <FormField
+                name="TCKN"
+                value={memoizedNewRecord.TCKN || ""}
+                onChange={handleNewChange}
+                label="blacklist.TCKN"
+              />
+              <FormField
+                name="KimlikNo"
+                value={memoizedNewRecord.KimlikNo || ""}
+                onChange={handleNewChange}
+                label="blacklist.idNumber"
+              />
+              <FormField
+                name="DogumTarihi"
+                value={memoizedNewRecord.DogumTarihi || ""}
+                onChange={handleNewChange}
+                label="blacklist.birthDate"
+                type="date"
+                required
+              />
+              <FormField
+                name="Aciklama"
+                value={memoizedNewRecord.Aciklama || ""}
+                onChange={handleNewChange}
+                label="blacklist.description"
+                type="textarea"
+                rows={3}
+              />
+              <FormField
+                name="Sistem_grubu"
+                value={memoizedNewRecord.Sistem_grubu || ""}
+                onChange={handleNewChange}
+                label="blacklist.systemGroup"
+              />
+              <FormField
+                name="Otel_kodu"
+                value={memoizedNewRecord.Otel_kodu || ""}
+                onChange={handleNewChange}
+                label="blacklist.hotelCode"
+              />
+              <FormField
+                name="Ulke_xml"
+                value={memoizedNewRecord.Ulke_xml || ""}
+                onChange={handleNewChange}
+                label="blacklist.countryXml"
+              />
+              <FormField
+                name="Acenta"
+                value={memoizedNewRecord.Acenta || ""}
+                onChange={handleNewChange}
+                label="blacklist.agency"
+              />
               <div className="col-span-2 flex gap-2 mt-2">
                 <button
                   type="submit"

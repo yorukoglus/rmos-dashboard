@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { toDisplayDate } from "@/utils/utils";
 import { useTranslation } from "react-i18next";
+import FormField from "@/components/FormField";
 
 interface ApiResponse<T> {
   value: T;
@@ -66,7 +67,11 @@ export default function ForecastPage() {
   const [params, setParams] = useState<ForecastParams>(defaultParams);
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >
+    ) => {
       const { name, value } = e.target;
       setParams((prev) => ({ ...prev, [name]: value }));
     },
@@ -104,8 +109,6 @@ export default function ForecastPage() {
     [fetchData]
   );
 
-  const memoizedParams = useMemo(() => params, [params]);
-
   useEffect(() => {
     if (token) fetchData();
     // eslint-disable-next-line
@@ -121,68 +124,45 @@ export default function ForecastPage() {
           onSubmit={handleSubmit}
           className="flex flex-wrap gap-4 items-end mb-8 bg-blue-50 rounded-lg p-4 border border-blue-200"
         >
-          <div className="flex flex-col min-w-[160px]">
-            <label className="block text-xs font-semibold mb-1 text-blue-800">
-              {t("forecast.startDate")}
-            </label>
-            <input
-              type="date"
-              name="xBas_Tar"
-              value={params.xBas_Tar}
-              onChange={handleChange}
-              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
-            />
-          </div>
-          <div className="flex flex-col min-w-[160px]">
-            <label className="block text-xs font-semibold mb-1 text-blue-800">
-              {t("forecast.endDate")}
-            </label>
-            <input
-              type="date"
-              name="xBit_Tar"
-              value={params.xBit_Tar}
-              onChange={handleChange}
-              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
-            />
-          </div>
-          <div className="flex flex-col min-w-[120px]">
-            <label className="block text-xs font-semibold mb-1 text-blue-800">
-              {t("forecast.roomType")}
-            </label>
-            <input
-              type="text"
-              name="kon1"
-              value={params.kon1}
-              onChange={handleChange}
-              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
-            />
-          </div>
-          <div className="flex flex-col min-w-[120px]">
-            <label className="block text-xs font-semibold mb-1 text-blue-800">
-              {t("forecast.company")}
-            </label>
-            <input
-              type="text"
-              name="xRez_Sirket"
-              value={params.xRez_Sirket}
-              onChange={handleChange}
-              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
-            />
-          </div>
-          <div className="flex flex-col min-w-[100px]">
-            <label className="block text-xs font-semibold mb-1 text-blue-800">
-              {t("forecast.type")}
-            </label>
-            <select
-              name="xtip"
-              value={params.xtip}
-              onChange={handleChange}
-              className="border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none"
-            >
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-            </select>
-          </div>
+          <FormField
+            label={t("forecast.startDate")}
+            type="date"
+            name="xBas_Tar"
+            value={params.xBas_Tar}
+            onChange={handleChange}
+          />
+          <FormField
+            label={t("forecast.endDate")}
+            type="date"
+            name="xBit_Tar"
+            value={params.xBit_Tar}
+            onChange={handleChange}
+          />
+          <FormField
+            label={t("forecast.roomType")}
+            type="text"
+            name="kon1"
+            value={params.kon1}
+            onChange={handleChange}
+          />
+          <FormField
+            label={t("forecast.company")}
+            type="text"
+            name="xRez_Sirket"
+            value={params.xRez_Sirket}
+            onChange={handleChange}
+          />
+          <FormField
+            label={t("forecast.type")}
+            type="select"
+            name="xtip"
+            value={params.xtip}
+            onChange={handleChange}
+            options={[
+              { value: 1, label: "1" },
+              { value: 2, label: "2" },
+            ]}
+          />
           <button
             type="submit"
             className="bg-blue-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-blue-700 transition"

@@ -10,7 +10,11 @@
     "clear": "Temizle",
     "filter": "Filtrele",
     "newRecord": "Yeni Kayıt",
-    "logout": "Çıkış Yap"
+    "logout": "Çıkış Yap",
+    "showFilter": "Filteleri Göster",
+    "hideFilter": "Filteleri Gizle",
+    "turkish": "Türkçe",
+    "english": "İngilizce"
   },
   "forecast": {
     "title": "Forecast",

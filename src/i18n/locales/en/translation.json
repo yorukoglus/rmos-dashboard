@@ -10,7 +10,11 @@
     "clear": "Clear",
     "filter": "Filter",
     "newRecord": "New Record",
-    "logout": "Logout"
+    "logout": "Logout",
+    "showFilter": "Show Filters",
+    "hideFilter": "Hide Filters",
+    "turkish": "Turkish",
+    "english": "English"
   },
   "forecast": {
     "title": "Forecast",
