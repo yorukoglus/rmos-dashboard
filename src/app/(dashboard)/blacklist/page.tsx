@@ -43,6 +43,10 @@ export default function BlacklistPage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
+  const [selectedRecord, setSelectedRecord] = useState<BlacklistData | null>(
+    null
+  );
   const [newRecord, setNewRecord] =
     useState<Partial<BlacklistData>>(initialForm);
   const [addSuccess, setAddSuccess] = useState("");
@@ -107,6 +111,26 @@ export default function BlacklistPage() {
     setNewRecord((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleRowClick = (row: BlacklistData) => {
+    setSelectedRecord(row);
+    setNewRecord({
+      Ad: row.Adi || row.Ad,
+      Soyadi: row.Soy || row.Soyadi,
+      TCKN: row.Tcno || row.TCKN,
+      KimlikNo: row.Kimlik_no || row.KimlikNo,
+      DogumTarihi: row.Dogum_tarihi
+        ? new Date(row.Dogum_tarihi).toISOString().split("T")[0]
+        : row.DogumTarihi,
+      Aciklama: row.Aciklama,
+      Sistem_grubu: row.Sistem_grubu,
+      Otel_kodu: row.Otel_kodu,
+      Ulke_xml: row.Ulke_xml,
+      Acenta: row.Acenta,
+    });
+    setModalMode("edit");
+    setShowModal(true);
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -115,7 +139,7 @@ export default function BlacklistPage() {
     try {
       const payload = {
         db_Id: 9,
-        Id: 0,
+        Id: modalMode === "edit" ? selectedRecord?.Id || 0 : 0,
         Adi: newRecord.Ad || "",
         Soy: newRecord.Soyadi || "",
         Aciklama: newRecord.Aciklama || "",
@@ -130,18 +154,29 @@ export default function BlacklistPage() {
       };
       const result = await api.post(API_ENDPOINTS.BLACKLIST.ADD, payload);
       if (result?.isSucceded) {
-        setAddSuccess("Kayıt başarıyla eklendi.");
-        setNewRecord(initialForm);
+        setAddSuccess(
+          modalMode === "edit"
+            ? "Kayıt başarıyla güncellendi."
+            : "Kayıt başarıyla eklendi."
+        );
         fetchData();
-        setShowModal(false);
+        handleModalClose();
       } else {
-        throw new Error(result?.message || "Kayıt eklenemedi.");
+        throw new Error(result?.message || "İşlem başarısız oldu.");
       }
     } catch (err: any) {
-      setAddError(err.message || "Kayıt eklenirken hata oluştu.");
+      setAddError(err.message || "İşlem sırasında hata oluştu.");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    setModalMode("add");
+    setSelectedRecord(null);
+    setNewRecord(initialForm);
+    setAddSuccess("");
   };
 
   return (
@@ -225,7 +260,11 @@ export default function BlacklistPage() {
           </button>
           <button
             type="button"
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setModalMode("add");
+              setNewRecord(initialForm);
+              setShowModal(true);
+            }}
             className="bg-green-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-green-700 transition"
           >
             Yeni Kayıt
@@ -240,102 +279,123 @@ export default function BlacklistPage() {
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
             <button
               className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-              onClick={() => setShowModal(false)}
+              onClick={handleModalClose}
             >
               ×
             </button>
             <h2 className="text-xl font-bold mb-4 text-blue-800">
-              Yeni Kayıt Ekle
+              {modalMode === "edit" ? "Kayıt Düzenle" : "Yeni Kayıt Ekle"}
             </h2>
             <form
               onSubmit={handleAdd}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
-              <input
-                name="Ad"
-                value={newRecord.Ad || ""}
-                onChange={handleNewChange}
-                placeholder="Adı"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                required
-              />
-              <input
-                name="Soyadi"
-                value={newRecord.Soyadi || ""}
-                onChange={handleNewChange}
-                placeholder="Soyadı"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-                required
-              />
-              <input
-                name="TCKN"
-                value={newRecord.TCKN || ""}
-                onChange={handleNewChange}
-                placeholder="TCKN"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <input
-                name="KimlikNo"
-                value={newRecord.KimlikNo || ""}
-                onChange={handleNewChange}
-                placeholder="Kimlik No"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <input
-                name="DogumTarihi"
-                type="date"
-                value={newRecord.DogumTarihi || ""}
-                onChange={handleNewChange}
-                placeholder="Doğum Tarihi"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <textarea
-                name="Aciklama"
-                value={newRecord.Aciklama || ""}
-                onChange={handleNewChange}
-                placeholder="Açıklama"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full col-span-2"
-                rows={2}
-              />
-              <input
-                name="Sistem_grubu"
-                value={newRecord.Sistem_grubu || ""}
-                onChange={handleNewChange}
-                placeholder="Sistem Grubu"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <input
-                name="Otel_kodu"
-                value={newRecord.Otel_kodu || ""}
-                onChange={handleNewChange}
-                placeholder="Otel Kodu"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <input
-                name="Ulke_xml"
-                value={newRecord.Ulke_xml || ""}
-                onChange={handleNewChange}
-                placeholder="Ülke XML"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
-              <input
-                name="Acenta"
-                value={newRecord.Acenta || ""}
-                onChange={handleNewChange}
-                placeholder="Acenta"
-                className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Adı</label>
+                <input
+                  name="Ad"
+                  value={newRecord.Ad || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Soyadı</label>
+                <input
+                  name="Soyadi"
+                  value={newRecord.Soyadi || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">TCKN</label>
+                <input
+                  name="TCKN"
+                  value={newRecord.TCKN || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Kimlik No</label>
+                <input
+                  name="KimlikNo"
+                  value={newRecord.KimlikNo || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Doğum Tarihi</label>
+                <input
+                  name="DogumTarihi"
+                  type="date"
+                  value={newRecord.DogumTarihi || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-1 col-span-2">
+                <label className="text-xs text-gray-500">Açıklama</label>
+                <textarea
+                  name="Aciklama"
+                  value={newRecord.Aciklama || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                  rows={2}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Sistem Grubu</label>
+                <input
+                  name="Sistem_grubu"
+                  value={newRecord.Sistem_grubu || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Otel Kodu</label>
+                <input
+                  name="Otel_kodu"
+                  value={newRecord.Otel_kodu || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Ülke XML</label>
+                <input
+                  name="Ulke_xml"
+                  value={newRecord.Ulke_xml || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Acenta</label>
+                <input
+                  name="Acenta"
+                  value={newRecord.Acenta || ""}
+                  onChange={handleNewChange}
+                  className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
+                />
+              </div>
               <div className="col-span-2 flex gap-2 mt-2">
                 <button
                   type="submit"
                   disabled={saving}
                   className="bg-green-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-green-700 transition disabled:opacity-50"
                 >
-                  Kaydet
+                  {modalMode === "edit" ? "Güncelle" : "Kaydet"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={handleModalClose}
                   className="bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold text-xs shadow hover:bg-gray-400 transition"
                 >
                   İptal
@@ -351,7 +411,12 @@ export default function BlacklistPage() {
           </div>
         </div>
       )}
-
+      {loading && (
+        <div className="flex h-full items-center justify-center gap-2 text-blue-700 font-semibold">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+          Yükleniyor...
+        </div>
+      )}
       {!loading && !error && data && (
         <div className="overflow-auto">
           <table className="min-w-full border text-xs rounded-lg overflow-hidden shadow">
@@ -372,6 +437,7 @@ export default function BlacklistPage() {
               {data.map((row, i) => (
                 <tr
                   key={i}
+                  onClick={() => handleRowClick(row)}
                   className={
                     (i % 2 === 0 ? "bg-white" : "bg-blue-50") +
                     " hover:bg-blue-100 transition cursor-pointer"

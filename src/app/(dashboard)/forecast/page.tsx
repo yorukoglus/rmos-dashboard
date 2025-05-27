@@ -175,7 +175,10 @@ export default function ForecastPage() {
         </form>
 
         {loading && (
-          <div className="text-blue-700 font-semibold">Yükleniyor...</div>
+          <div className="flex h-full items-center justify-center gap-2 text-blue-700 font-semibold">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+            Yükleniyor...
+          </div>
         )}
         {error && <div className="text-red-500">{error}</div>}
         {!loading && !error && data && (
