@@ -14,6 +14,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { toDisplayDate } from "@/utils/utils";
 
 interface ForecastData {
   // API'den dönen veri yapısına göre güncellenecek
@@ -94,7 +95,7 @@ export default function ForecastPage() {
   }, [token]);
 
   return (
-    <div className="max-w-[calc(100vw-47px)] mx-auto m-4">
+    <div className="max-w-[calc(100vw-47px)] w-full mx-auto m-4">
       <div className="bg-white/90 rounded-xl shadow-lg p-6 md:p-10">
         <h1 className="text-3xl font-bold mb-6 text-blue-800 tracking-tight">
           Forecast
@@ -208,9 +209,7 @@ export default function ForecastPage() {
                           key={j}
                           className="border border-blue-100 px-2 py-1 text-center whitespace-nowrap"
                         >
-                          {typeof val === "number"
-                            ? val.toLocaleString("tr-TR")
-                            : val}
+                          {typeof val === "number" ? val : toDisplayDate(val)}
                         </td>
                       ))}
                     </tr>
@@ -250,8 +249,8 @@ export default function ForecastPage() {
                       <Bar
                         key={key}
                         dataKey={key}
-                        fill={index === 0 ? "#3B82F6" : "#60A5FA"}
-                        name={key}
+                        fill={index === 0 ? "#2563eb" : "#3b82f6"}
+                        radius={[4, 4, 0, 0]}
                       />
                     ))}
                 </BarChart>

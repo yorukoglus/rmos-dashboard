@@ -4,6 +4,7 @@ import { useEffect, useState, Fragment } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
+import { toDisplayDate } from "@/utils/utils";
 
 interface BlacklistData {
   Ad: string;
@@ -32,13 +33,6 @@ const initialForm: Partial<BlacklistData> = {
   Milliyet: "TR",
   Kullanici: "",
 };
-
-function toDisplayDate(val: string) {
-  if (!val) return "";
-  const d = val.split("T")[0].split("-");
-  if (d.length !== 3) return val;
-  return `${d[2]}.${d[1]}.${d[0]}`;
-}
 
 export default function BlacklistPage() {
   const { token } = useAuth();
@@ -112,6 +106,7 @@ export default function BlacklistPage() {
     const { name, value } = e.target;
     setNewRecord((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -150,7 +145,7 @@ export default function BlacklistPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-72px-2rem)] max-w-[calc(100vw-47px)] bg-white/90 rounded-xl shadow-lg p-6 md:p-10 flex flex-col m-4">
+    <div className="h-[calc(100vh-72px-2rem)] max-w-[calc(100vw-47px)] w-full bg-white/90 rounded-xl shadow-lg p-6 md:p-10 flex flex-col m-4">
       <h1 className="text-3xl font-bold mb-6 text-blue-800 tracking-tight">
         Blacklist
       </h1>
