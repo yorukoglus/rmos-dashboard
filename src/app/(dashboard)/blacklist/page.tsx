@@ -5,6 +5,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import { toDisplayDate } from "@/utils/utils";
+import { useNotificationStore } from "@/stores/notificationStore";
+
+interface ApiResponse<T> {
+  value: T;
+  isSucceded: boolean;
+  message?: string;
+}
 
 interface BlacklistData {
   Ad: string;
@@ -36,12 +43,12 @@ const initialForm: Partial<BlacklistData> = {
 
 export default function BlacklistPage() {
   const { token } = useAuth();
+  const { success, error: showError } = useNotificationStore();
   const [data, setData] = useState<BlacklistData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState<Partial<BlacklistData>>(initialForm);
   const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [selectedRecord, setSelectedRecord] = useState<BlacklistData | null>(
@@ -49,22 +56,23 @@ export default function BlacklistPage() {
   );
   const [newRecord, setNewRecord] =
     useState<Partial<BlacklistData>>(initialForm);
-  const [addSuccess, setAddSuccess] = useState("");
-  const [addError, setAddError] = useState("");
 
   const fetchData = async (filter: Partial<BlacklistData> = form) => {
     setLoading(true);
     setError("");
     try {
-      const result = await api.post(API_ENDPOINTS.BLACKLIST.GET, {
-        db_Id: 9,
-        Adi: filter.Ad || "ALL?",
-        Soyadi: filter.Soyadi || undefined,
-        KimlikNo: filter.KimlikNo || undefined,
-        TCKN: filter.TCKN || undefined,
-        DogumTarihi: filter.DogumTarihi || undefined,
-        Tip: 9,
-      });
+      const result = await api.post<ApiResponse<BlacklistData[]>>(
+        API_ENDPOINTS.BLACKLIST.GET,
+        {
+          db_Id: 9,
+          Adi: filter.Ad || "ALL?",
+          Soyadi: filter.Soyadi || undefined,
+          KimlikNo: filter.KimlikNo || undefined,
+          TCKN: filter.TCKN || undefined,
+          DogumTarihi: filter.DogumTarihi || undefined,
+          Tip: 9,
+        }
+      );
       if (!result || !result.value) {
         throw new Error("API'den geçerli bir yanıt alınamadı");
       }
@@ -99,7 +107,6 @@ export default function BlacklistPage() {
 
   const handleClear = () => {
     setForm(initialForm);
-    setSuccess("");
     setError("");
     fetchData(initialForm);
   };
@@ -134,8 +141,6 @@ export default function BlacklistPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setAddError("");
-    setAddSuccess("");
     try {
       const payload = {
         db_Id: 9,
@@ -152,9 +157,12 @@ export default function BlacklistPage() {
         Ulke_xml: newRecord.Ulke_xml || "",
         Acenta: newRecord.Acenta || "",
       };
-      const result = await api.post(API_ENDPOINTS.BLACKLIST.ADD, payload);
+      const result = await api.post<ApiResponse<null>>(
+        API_ENDPOINTS.BLACKLIST.ADD,
+        payload
+      );
       if (result?.isSucceded) {
-        setAddSuccess(
+        success(
           modalMode === "edit"
             ? "Kayıt başarıyla güncellendi."
             : "Kayıt başarıyla eklendi."
@@ -165,7 +173,7 @@ export default function BlacklistPage() {
         throw new Error(result?.message || "İşlem başarısız oldu.");
       }
     } catch (err: any) {
-      setAddError(err.message || "İşlem sırasında hata oluştu.");
+      showError(err.message || "İşlem sırasında hata oluştu.");
     } finally {
       setSaving(false);
     }
@@ -176,7 +184,6 @@ export default function BlacklistPage() {
     setModalMode("add");
     setSelectedRecord(null);
     setNewRecord(initialForm);
-    setAddSuccess("");
   };
 
   return (
@@ -270,7 +277,6 @@ export default function BlacklistPage() {
             Yeni Kayıt
           </button>
         </div>
-        {success && <div className="text-green-600 col-span-3">{success}</div>}
         {error && <div className="text-red-500 col-span-3">{error}</div>}
       </form>
 
@@ -278,10 +284,10 @@ export default function BlacklistPage() {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
             <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+              className="absolute top-6 right-6 text-gray-500 hover:bg-gray-200 border rounded-md px-1.5"
               onClick={handleModalClose}
             >
-              ×
+              X
             </button>
             <h2 className="text-xl font-bold mb-4 text-blue-800">
               {modalMode === "edit" ? "Kayıt Düzenle" : "Yeni Kayıt Ekle"}
@@ -401,12 +407,6 @@ export default function BlacklistPage() {
                   İptal
                 </button>
               </div>
-              {addSuccess && (
-                <div className="text-green-600 col-span-2">{addSuccess}</div>
-              )}
-              {addError && (
-                <div className="text-red-500 col-span-2">{addError}</div>
-              )}
             </form>
           </div>
         </div>

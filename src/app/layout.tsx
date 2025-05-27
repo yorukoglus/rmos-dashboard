@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { usePathname } from "next/navigation";
+import Notification from "@/components/Notification";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
           <main className="flex bg-gradient-to-br from-blue-100 to-blue-300">
             {children}
           </main>
+          <Notification />
         </AuthProvider>
       </body>
     </html>

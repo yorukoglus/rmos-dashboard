@@ -1,68 +1,75 @@
-import { useRouter } from "next/navigation";
+import axios, {
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+  Method,
+} from "axios";
 
-interface RequestOptions extends RequestInit {
+interface RequestOptions extends Omit<AxiosRequestConfig, "method"> {
   requiresAuth?: boolean;
+  method?: Method;
 }
 
-async function handleResponse(response: Response) {
-  if (!response.ok) {
-    if (response.status === 401) {
-      // Token geçersiz veya süresi dolmuş
+const axiosInstance = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error: unknown) => {
+    return Promise.reject(error);
+  }
+);
+
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  (error: unknown) => {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
       throw new Error("Oturum süresi doldu. Lütfen tekrar giriş yapın.");
     }
-    throw new Error(`HTTP error! status: ${response.status}`);
+    throw error;
   }
-  return response.json();
-}
+);
 
-export async function fetchApi(endpoint: string, options: RequestOptions = {}) {
-  const { requiresAuth = true, ...fetchOptions } = options;
+export async function fetchApi<T>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  const { requiresAuth = true, ...axiosOptions } = options;
 
-  let headers = new Headers(fetchOptions.headers as Record<string, string>);
+  if (!requiresAuth && axiosOptions.headers) {
+    delete axiosOptions.headers.Authorization;
+  }
 
-  if (requiresAuth) {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "/login";
-      throw new Error("Oturum bulunamadı. Lütfen giriş yapın.");
+  try {
+    const response: AxiosResponse<T> = await axiosInstance(
+      endpoint,
+      axiosOptions
+    );
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Bir hata oluştu");
     }
-    headers.set("Authorization", `Bearer ${token}`);
+    throw error;
   }
-
-  const method = (fetchOptions.method || "GET").toUpperCase();
-  if (["POST", "PUT", "DELETE"].includes(method)) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  const response = await fetch(endpoint, {
-    ...fetchOptions,
-    headers,
-  });
-
-  return handleResponse(response);
 }
 
-// HTTP metodları için yardımcı fonksiyonlar
 export const api = {
-  get: (endpoint: string, options?: RequestOptions) =>
-    fetchApi(endpoint, { ...options, method: "GET" }),
-
-  post: (endpoint: string, data: any, options?: RequestOptions) =>
-    fetchApi(endpoint, {
-      ...options,
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-
-  put: (endpoint: string, data: any, options?: RequestOptions) =>
-    fetchApi(endpoint, {
-      ...options,
-      method: "PUT",
-      body: JSON.stringify(data),
-    }),
-
-  delete: (endpoint: string, options?: RequestOptions) =>
-    fetchApi(endpoint, { ...options, method: "DELETE" }),
+  post: <T>(
+    endpoint: string,
+    data: unknown,
+    options?: Omit<RequestOptions, "method" | "data">
+  ) => fetchApi<T>(endpoint, { ...options, method: "POST", data }),
 };
