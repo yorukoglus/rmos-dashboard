@@ -2,7 +2,7 @@
 
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/stores/AuthContext";
 import Header from "@/components/Header";
 import { usePathname } from "next/navigation";
 import Notification from "@/components/Notification";

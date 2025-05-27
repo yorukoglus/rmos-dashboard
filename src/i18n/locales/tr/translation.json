@@ -24,7 +24,6 @@
     "company": "Şirket",
     "type": "Tip",
     "getData": "Getir",
-    "estimatedIncome": "Tahmini Gelir ve Diğer Değerler",
     "value": "Değer"
   },
   "blacklist": {

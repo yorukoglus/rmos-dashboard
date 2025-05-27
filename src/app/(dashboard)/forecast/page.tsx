@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/stores/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import {
@@ -33,27 +33,11 @@ interface ForecastData {
 }
 
 const defaultParams = {
-  db_Id: 9,
   xRez_Sirket: 9,
   xBas_Tar: "2024-06-01",
   xBit_Tar: "2024-06-08",
   xtip: 1,
   kon1: "ALL",
-  kon2: "BB",
-  xchkFis_Fazla_otel_10: 0,
-  bas_Yil: 2022,
-  bit_Yil: 2022,
-  fisrci_Kapalioda_10: 0,
-  xRez_C_W: "C",
-  xSistem_Tarihi: "2024-01-01",
-  xAlis_Tarihi: "2024-01-01",
-  sistem_Bas1: "2020-01-01",
-  sistem_Bit1: "2029-01-01",
-  pmdahil_10: 0,
-  tip_1: "001",
-  xFis_Bela_tutar_10: 0,
-  trace_Dus_10: 0,
-  cev_01: null,
 };
 
 type ForecastParams = typeof defaultParams;
@@ -217,11 +201,8 @@ export default function ForecastPage() {
                 </tbody>
               </table>
             </div>
-            <div className="w-full h-96 bg-white rounded-xl shadow p-6 border border-blue-100">
-              <h2 className="text-lg font-bold mb-2 text-blue-800">
-                {t("forecast.estimatedIncome")}
-              </h2>
-              <ResponsiveContainer width="100%" height="90%">
+            <div className="w-full h-72 bg-white rounded-xl shadow p-6 border border-blue-100">
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis

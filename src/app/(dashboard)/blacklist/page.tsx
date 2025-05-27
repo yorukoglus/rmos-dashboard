@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/stores/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import { toDisplayDate } from "@/utils/utils";

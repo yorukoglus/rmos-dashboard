@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/stores/AuthContext";
 import Link from "next/link";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";

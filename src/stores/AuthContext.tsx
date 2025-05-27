@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Sayfa yüklendiğinde localStorage'dan token'ı al
     const storedToken = localStorage.getItem("token");
     if (storedToken) {
       setToken(storedToken);

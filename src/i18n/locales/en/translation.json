@@ -24,7 +24,6 @@
     "company": "Company",
     "type": "Type",
     "getData": "Get Data",
-    "estimatedIncome": "Estimated Income and Other Values",
     "value": "Value"
   },
   "blacklist": {
