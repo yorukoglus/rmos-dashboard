@@ -1,0 +1,53 @@
+{
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "clear": "Temizle",
+    "filter": "Filtrele",
+    "newRecord": "Yeni Kayıt",
+    "logout": "Çıkış Yap"
+  },
+  "forecast": {
+    "title": "Forecast",
+    "startDate": "Başlangıç Tarihi",
+    "endDate": "Bitiş Tarihi",
+    "roomType": "Oda Tipi",
+    "company": "Şirket",
+    "type": "Tip",
+    "getData": "Getir",
+    "estimatedIncome": "Tahmini Gelir ve Diğer Değerler",
+    "value": "Değer"
+  },
+  "blacklist": {
+    "title": "Blacklist",
+    "name": "Adı",
+    "surname": "Soyadı",
+    "birthDate": "Doğum Tarihi",
+    "idNumber": "Kimlik No",
+    "tckn": "TCKN",
+    "description": "Açıklama",
+    "systemGroup": "Sistem Grubu",
+    "hotelCode": "Otel Kodu",
+    "countryXml": "Ülke XML",
+    "agency": "Acenta",
+    "editRecord": "Kayıt Düzenle",
+    "addRecord": "Yeni Kayıt Ekle",
+    "update": "Güncelle",
+    "recordAdded": "Kayıt başarıyla eklendi.",
+    "recordUpdated": "Kayıt başarıyla güncellendi.",
+    "operationFailed": "İşlem başarısız oldu.",
+    "errorOccurred": "İşlem sırasında hata oluştu."
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "email": "E-posta",
+    "password": "Şifre",
+    "loginFailed": "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.",
+    "errorOccurred": "Bir hata oluştu. Lütfen tekrar deneyin."
+  }
+}

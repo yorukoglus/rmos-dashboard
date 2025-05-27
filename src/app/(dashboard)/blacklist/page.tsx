@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
@@ -57,68 +57,71 @@ export default function BlacklistPage() {
   const [newRecord, setNewRecord] =
     useState<Partial<BlacklistData>>(initialForm);
 
-  const fetchData = async (filter: Partial<BlacklistData> = form) => {
-    setLoading(true);
-    setError("");
-    try {
-      const result = await api.post<ApiResponse<BlacklistData[]>>(
-        API_ENDPOINTS.BLACKLIST.GET,
-        {
-          db_Id: 9,
-          Adi: filter.Ad || "ALL?",
-          Soyadi: filter.Soyadi || undefined,
-          KimlikNo: filter.KimlikNo || undefined,
-          TCKN: filter.TCKN || undefined,
-          DogumTarihi: filter.DogumTarihi || undefined,
-          Tip: 9,
+  const fetchData = useCallback(
+    async (params = form) => {
+      setLoading(true);
+      setError("");
+      try {
+        const result = await api.post<ApiResponse<BlacklistData[]>>(
+          API_ENDPOINTS.BLACKLIST.GET,
+          {
+            db_Id: 9,
+            Adi: params.Ad || "ALL?",
+            Soyadi: params.Soyadi || undefined,
+            KimlikNo: params.KimlikNo || undefined,
+            TCKN: params.TCKN || undefined,
+            DogumTarihi: params.DogumTarihi || undefined,
+            Tip: 9,
+          }
+        );
+        if (!result || !result.value) {
+          throw new Error("API'den geçerli bir yanıt alınamadı");
         }
-      );
-      if (!result || !result.value) {
-        throw new Error("API'den geçerli bir yanıt alınamadı");
+        setData(result.value);
+      } catch (err: any) {
+        console.error("API Hatası:", err);
+        setError(
+          err.message ||
+            "Veri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+        );
+      } finally {
+        setLoading(false);
       }
-      setData(result.value);
-    } catch (err: any) {
-      console.error("API Hatası:", err);
-      setError(
-        err.message ||
-          "Veri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [form]
+  );
 
-  useEffect(() => {
-    if (token) fetchData();
-    // eslint-disable-next-line
-  }, [token]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setForm((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      fetchData(form);
+    },
+    [fetchData, form]
+  );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchData(form);
-  };
-
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setForm(initialForm);
     setError("");
     fetchData(initialForm);
-  };
+  }, [fetchData]);
 
-  const handleNewChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewRecord((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleNewChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+      setNewRecord((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleRowClick = (row: BlacklistData) => {
+  const handleRowClick = useCallback((row: BlacklistData) => {
     setSelectedRecord(row);
     setNewRecord({
       Ad: row.Adi || row.Ad,
@@ -136,7 +139,7 @@ export default function BlacklistPage() {
     });
     setModalMode("edit");
     setShowModal(true);
-  };
+  }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,6 +189,13 @@ export default function BlacklistPage() {
     setNewRecord(initialForm);
   };
 
+  const memoizedForm = useMemo(() => form, [form]);
+  const memoizedNewRecord = useMemo(() => newRecord, [newRecord]);
+
+  useEffect(() => {
+    if (token) fetchData();
+  }, [token, fetchData]);
+
   return (
     <div className="h-[calc(100vh-72px-2rem)] max-w-[calc(100vw-47px)] w-full bg-white/90 rounded-xl shadow-lg p-6 md:p-10 flex flex-col m-4">
       <h1 className="text-3xl font-bold mb-6 text-blue-800 tracking-tight">
@@ -201,7 +211,7 @@ export default function BlacklistPage() {
           </label>
           <input
             name="Ad"
-            value={form.Ad || ""}
+            value={memoizedForm.Ad || ""}
             onChange={handleChange}
             className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
           />
@@ -212,7 +222,7 @@ export default function BlacklistPage() {
           </label>
           <input
             name="Soyadi"
-            value={form.Soyadi || ""}
+            value={memoizedForm.Soyadi || ""}
             onChange={handleChange}
             className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
           />
@@ -224,7 +234,7 @@ export default function BlacklistPage() {
           <input
             name="DogumTarihi"
             type="date"
-            value={form.DogumTarihi || ""}
+            value={memoizedForm.DogumTarihi || ""}
             onChange={handleChange}
             className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
           />
@@ -235,7 +245,7 @@ export default function BlacklistPage() {
           </label>
           <input
             name="KimlikNo"
-            value={form.KimlikNo || ""}
+            value={memoizedForm.KimlikNo || ""}
             onChange={handleChange}
             className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
           />
@@ -246,7 +256,7 @@ export default function BlacklistPage() {
           </label>
           <input
             name="TCKN"
-            value={form.TCKN || ""}
+            value={memoizedForm.TCKN || ""}
             onChange={handleChange}
             className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
           />
@@ -300,7 +310,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Adı</label>
                 <input
                   name="Ad"
-                  value={newRecord.Ad || ""}
+                  value={memoizedNewRecord.Ad || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                   required
@@ -310,7 +320,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Soyadı</label>
                 <input
                   name="Soyadi"
-                  value={newRecord.Soyadi || ""}
+                  value={memoizedNewRecord.Soyadi || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                   required
@@ -320,7 +330,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">TCKN</label>
                 <input
                   name="TCKN"
-                  value={newRecord.TCKN || ""}
+                  value={memoizedNewRecord.TCKN || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />
@@ -329,7 +339,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Kimlik No</label>
                 <input
                   name="KimlikNo"
-                  value={newRecord.KimlikNo || ""}
+                  value={memoizedNewRecord.KimlikNo || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />
@@ -339,7 +349,7 @@ export default function BlacklistPage() {
                 <input
                   name="DogumTarihi"
                   type="date"
-                  value={newRecord.DogumTarihi || ""}
+                  value={memoizedNewRecord.DogumTarihi || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                   required
@@ -349,7 +359,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Açıklama</label>
                 <textarea
                   name="Aciklama"
-                  value={newRecord.Aciklama || ""}
+                  value={memoizedNewRecord.Aciklama || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                   rows={2}
@@ -359,7 +369,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Sistem Grubu</label>
                 <input
                   name="Sistem_grubu"
-                  value={newRecord.Sistem_grubu || ""}
+                  value={memoizedNewRecord.Sistem_grubu || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />
@@ -368,7 +378,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Otel Kodu</label>
                 <input
                   name="Otel_kodu"
-                  value={newRecord.Otel_kodu || ""}
+                  value={memoizedNewRecord.Otel_kodu || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />
@@ -377,7 +387,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Ülke XML</label>
                 <input
                   name="Ulke_xml"
-                  value={newRecord.Ulke_xml || ""}
+                  value={memoizedNewRecord.Ulke_xml || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />
@@ -386,7 +396,7 @@ export default function BlacklistPage() {
                 <label className="text-xs text-gray-500">Acenta</label>
                 <input
                   name="Acenta"
-                  value={newRecord.Acenta || ""}
+                  value={memoizedNewRecord.Acenta || ""}
                   onChange={handleNewChange}
                   className="border border-blue-300 rounded px-2 py-1 text-xs w-full"
                 />

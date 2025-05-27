@@ -1,0 +1,53 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "clear": "Clear",
+    "filter": "Filter",
+    "newRecord": "New Record",
+    "logout": "Logout"
+  },
+  "forecast": {
+    "title": "Forecast",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "roomType": "Room Type",
+    "company": "Company",
+    "type": "Type",
+    "getData": "Get Data",
+    "estimatedIncome": "Estimated Income and Other Values",
+    "value": "Value"
+  },
+  "blacklist": {
+    "title": "Blacklist",
+    "name": "Name",
+    "surname": "Surname",
+    "birthDate": "Birth Date",
+    "idNumber": "ID Number",
+    "tckn": "TCKN",
+    "description": "Description",
+    "systemGroup": "System Group",
+    "hotelCode": "Hotel Code",
+    "countryXml": "Country XML",
+    "agency": "Agency",
+    "editRecord": "Edit Record",
+    "addRecord": "Add New Record",
+    "update": "Update",
+    "recordAdded": "Record added successfully.",
+    "recordUpdated": "Record updated successfully.",
+    "operationFailed": "Operation failed.",
+    "errorOccurred": "An error occurred during the operation."
+  },
+  "auth": {
+    "login": "Login",
+    "email": "Email",
+    "password": "Password",
+    "loginFailed": "Login failed. Please check your credentials.",
+    "errorOccurred": "An error occurred. Please try again."
+  }
+}

@@ -3,25 +3,30 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { logout, token } = useAuth();
+  const { t } = useTranslation();
 
-  // Token yoksa header'ı gösterme
   if (!token) return null;
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     router.push("/login");
-  };
+  }, [logout, router]);
 
-  const isActive = (path: string) => {
-    return pathname === path
-      ? "bg-blue-400 cursor-default"
-      : "bg-blue-800 hover:bg-blue-700";
-  };
+  const isActive = useCallback(
+    (path: string) => {
+      return pathname === path
+        ? "bg-blue-400 cursor-default"
+        : "bg-blue-800 hover:bg-blue-700";
+    },
+    [pathname]
+  );
 
   return (
     <header className="bg-white shadow">
@@ -36,7 +41,7 @@ export default function Header() {
                   "/forecast"
                 )}`}
               >
-                Forecast
+                {t("forecast.title")}
               </Link>
               <Link
                 href="/blacklist"
@@ -44,7 +49,7 @@ export default function Header() {
                   "/blacklist"
                 )}`}
               >
-                Blacklist
+                {t("blacklist.title")}
               </Link>
             </nav>
           </div>
@@ -52,7 +57,7 @@ export default function Header() {
             onClick={handleLogout}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
           >
-            Çıkış Yap
+            {t("common.logout")}
           </button>
         </div>
       </div>

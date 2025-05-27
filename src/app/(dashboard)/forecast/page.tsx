@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
@@ -15,9 +15,19 @@ import {
   Legend,
 } from "recharts";
 import { toDisplayDate } from "@/utils/utils";
+import { useTranslation } from "react-i18next";
+
+interface ApiResponse<T> {
+  value: T;
+  isSucceded: boolean;
+  message?: string;
+}
 
 interface ForecastData {
-  // API'den dönen veri yapısına göre güncellenecek
+  Tarih: string;
+  Oda: number;
+  Musteri: number;
+  Gelir: number;
   [key: string]: any;
 }
 
@@ -25,7 +35,7 @@ const defaultParams = {
   db_Id: 9,
   xRez_Sirket: 9,
   xBas_Tar: "2024-06-01",
-  xBit_Tar: "2024-06-10",
+  xBit_Tar: "2024-06-08",
   xtip: 1,
   kon1: "ALL",
   kon2: "BB",
@@ -48,32 +58,29 @@ const defaultParams = {
 type ForecastParams = typeof defaultParams;
 
 export default function ForecastPage() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [data, setData] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [params, setParams] = useState<ForecastParams>(defaultParams);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setParams((prev) => ({ ...prev, [name]: value }));
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setParams((prev) => ({ ...prev, [name]: value }));
+    },
+    []
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchData();
-  };
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const result = await api.post(API_ENDPOINTS.FORECAST, {
-        ...params,
-        xtip: Number(params.xtip),
-      });
+      const result = await api.post<ApiResponse<ForecastData[]>>(
+        API_ENDPOINTS.FORECAST,
+        { ...params, xtip: Number(params.xtip) }
+      );
       if (!result || !result.value) {
         throw new Error("API'den geçerli bir yanıt alınamadı");
       }
@@ -87,7 +94,17 @@ export default function ForecastPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params]);
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      fetchData();
+    },
+    [fetchData]
+  );
+
+  const memoizedParams = useMemo(() => params, [params]);
 
   useEffect(() => {
     if (token) fetchData();
@@ -98,7 +115,7 @@ export default function ForecastPage() {
     <div className="max-w-[calc(100vw-47px)] w-full mx-auto m-4">
       <div className="bg-white/90 rounded-xl shadow-lg p-6 md:p-10">
         <h1 className="text-3xl font-bold mb-6 text-blue-800 tracking-tight">
-          Forecast
+          {t("forecast.title")}
         </h1>
         <form
           onSubmit={handleSubmit}
@@ -106,7 +123,7 @@ export default function ForecastPage() {
         >
           <div className="flex flex-col min-w-[160px]">
             <label className="block text-xs font-semibold mb-1 text-blue-800">
-              Başlangıç Tarihi
+              {t("forecast.startDate")}
             </label>
             <input
               type="date"
@@ -118,7 +135,7 @@ export default function ForecastPage() {
           </div>
           <div className="flex flex-col min-w-[160px]">
             <label className="block text-xs font-semibold mb-1 text-blue-800">
-              Bitiş Tarihi
+              {t("forecast.endDate")}
             </label>
             <input
               type="date"
@@ -130,7 +147,7 @@ export default function ForecastPage() {
           </div>
           <div className="flex flex-col min-w-[120px]">
             <label className="block text-xs font-semibold mb-1 text-blue-800">
-              Oda Tipi
+              {t("forecast.roomType")}
             </label>
             <input
               type="text"
@@ -142,7 +159,7 @@ export default function ForecastPage() {
           </div>
           <div className="flex flex-col min-w-[120px]">
             <label className="block text-xs font-semibold mb-1 text-blue-800">
-              Şirket
+              {t("forecast.company")}
             </label>
             <input
               type="text"
@@ -154,7 +171,7 @@ export default function ForecastPage() {
           </div>
           <div className="flex flex-col min-w-[100px]">
             <label className="block text-xs font-semibold mb-1 text-blue-800">
-              Tip
+              {t("forecast.type")}
             </label>
             <select
               name="xtip"
@@ -170,14 +187,14 @@ export default function ForecastPage() {
             type="submit"
             className="bg-blue-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-blue-700 transition"
           >
-            Getir
+            {t("forecast.getData")}
           </button>
         </form>
 
         {loading && (
           <div className="flex h-full items-center justify-center gap-2 text-blue-700 font-semibold">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
-            Yükleniyor...
+            {t("common.loading")}
           </div>
         )}
         {error && <div className="text-red-500">{error}</div>}
@@ -222,19 +239,21 @@ export default function ForecastPage() {
             </div>
             <div className="w-full h-96 bg-white rounded-xl shadow p-6 border border-blue-100">
               <h2 className="text-lg font-bold mb-2 text-blue-800">
-                Tahmini Gelir ve Diğer Değerler
+                {t("forecast.estimatedIncome")}
               </h2>
               <ResponsiveContainer width="100%" height="90%">
                 <BarChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
-                    dataKey={Object.keys(data[0] || {})[0]}
+                    dataKey={(values: ForecastData) =>
+                      toDisplayDate(values.Tarih)
+                    }
                     tick={{ fontSize: 12 }}
                   />
                   <YAxis
                     tick={{ fontSize: 12 }}
                     label={{
-                      value: "Değer",
+                      value: t("forecast.value"),
                       angle: -90,
                       position: "insideLeft",
                       fontSize: 14,
