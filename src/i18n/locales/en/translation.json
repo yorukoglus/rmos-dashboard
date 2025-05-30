@@ -38,6 +38,7 @@
     "birthDate": "Birth Date",
     "idNumber": "ID Number",
     "tckn": "TCKN",
+    "TCKN": "TCKN",
     "description": "Description",
     "systemGroup": "System Group",
     "hotelCode": "Hotel Code",

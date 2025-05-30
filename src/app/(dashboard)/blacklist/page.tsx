@@ -7,6 +7,9 @@ import { toDisplayDate } from "@/utils/utils";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { useTranslation } from "react-i18next";
 import FormField from "@/components/FormField";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 interface ApiResponse<T> {
   value: T;
@@ -17,7 +20,7 @@ interface ApiResponse<T> {
 interface BlacklistData {
   Ad: string;
   Soyadi: string;
-  TCKN: string;
+  TCKN?: number;
   KimlikNo: string;
   DogumTarihi: string;
   SistemTarihi: string;
@@ -32,7 +35,6 @@ interface BlacklistData {
 const initialForm: Partial<BlacklistData> = {
   Ad: "",
   Soyadi: "",
-  TCKN: "",
   KimlikNo: "",
   DogumTarihi: "",
   Aciklama: "",
@@ -42,130 +44,119 @@ const initialForm: Partial<BlacklistData> = {
   Kullanici: "",
 };
 
+const blacklistSchema = z.object({
+  Ad: z.string().min(2, "Ad en az 2 karakter olmalıdır"),
+  Soyadi: z.string().min(2, "Soyadı en az 2 karakter olmalıdır"),
+  TCKN: z.number().int().gte(9999999999, "TCKN 11 haneli olmalıdır").optional(),
+  KimlikNo: z.string().min(1, "Kimlik numarası gereklidir").optional(),
+  DogumTarihi: z.string().min(1, "Doğum tarihi gereklidir"),
+  Aciklama: z.string().optional(),
+  Sistem_grubu: z.string().optional(),
+  Otel_kodu: z.string().optional(),
+  Ulke_xml: z.string().optional(),
+  Acenta: z.string().optional(),
+});
+
+type BlacklistFormData = z.infer<typeof blacklistSchema>;
+
 export default function BlacklistPage() {
   const { success, error: showError } = useNotificationStore();
   const [data, setData] = useState<BlacklistData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<Partial<BlacklistData>>(initialForm);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [selectedRecord, setSelectedRecord] = useState<BlacklistData | null>(
     null
   );
-  const [newRecord, setNewRecord] =
-    useState<Partial<BlacklistData>>(initialForm);
   const [isFilterVisible, setIsFilterVisible] = useState(true);
   const { t } = useTranslation();
 
-  const fetchData = useCallback(
-    async (params = form) => {
-      setLoading(true);
-      setError("");
-      try {
-        const result = await api.post<ApiResponse<BlacklistData[]>>(
-          API_ENDPOINTS.BLACKLIST.GET,
-          {
-            db_Id: 9,
-            Adi: params.Ad || "ALL?",
-            Soyadi: params.Soyadi || undefined,
-            KimlikNo: params.KimlikNo || undefined,
-            TCKN: params.TCKN || undefined,
-            DogumTarihi: params.DogumTarihi || undefined,
-            Tip: 9,
-          }
-        );
-        if (!result || !result.value) {
-          throw new Error(t("common.anErrorOccured"));
-        }
-        setData(result.value);
-      } catch (err: any) {
-        console.error("API Hatası:", err);
-        setError(err.message || t("common.fetchError"));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [form]
-  );
+  const filterForm = useForm<BlacklistFormData>({
+    defaultValues: initialForm,
+  });
 
-  const handleChange = useCallback(
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const { name, value } = e.target;
-      setForm((prev) => ({ ...prev, [name]: value }));
-    },
-    []
-  );
+  const modalForm = useForm<BlacklistFormData>({
+    resolver: zodResolver(blacklistSchema),
+    defaultValues: initialForm,
+  });
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      fetchData(form);
-    },
-    [form]
-  );
-
-  const handleClear = useCallback(() => {
-    setForm(initialForm);
+  const fetchData = useCallback(async (params = initialForm) => {
+    setLoading(true);
     setError("");
-    fetchData(initialForm);
+    try {
+      const result = await api.post<ApiResponse<BlacklistData[]>>(
+        API_ENDPOINTS.BLACKLIST.GET,
+        {
+          db_Id: 9,
+          Adi: params.Ad || "ALL?",
+          Soyadi: params.Soyadi || undefined,
+          KimlikNo: params.KimlikNo || undefined,
+          TCKN: params.TCKN || undefined,
+          DogumTarihi: params.DogumTarihi || undefined,
+          Tip: 9,
+        }
+      );
+      if (!result || !result.value) {
+        throw new Error(t("common.anErrorOccured"));
+      }
+      setData(result.value);
+    } catch (err: any) {
+      console.error("API Hatası:", err);
+      setError(err.message || t("common.fetchError"));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleNewChange = useCallback(
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const { name, value } = e.target;
-      setNewRecord((prev) => ({ ...prev, [name]: value }));
+  const handleRowClick = useCallback(
+    (row: BlacklistData) => {
+      setSelectedRecord(row);
+      modalForm.reset({
+        Ad: row.Adi || row.Ad,
+        Soyadi: row.Soy || row.Soyadi,
+        TCKN: Number(row.Tcno || row.TCKN),
+        KimlikNo: row.Kimlik_no || row.KimlikNo,
+        DogumTarihi: row.Dogum_tarihi
+          ? new Date(row.Dogum_tarihi).toISOString().split("T")[0]
+          : row.DogumTarihi,
+        Aciklama: row.Aciklama,
+        Sistem_grubu: row.Sistem_grubu,
+        Otel_kodu: row.Otel_kodu,
+        Ulke_xml: row.Ulke_xml,
+        Acenta: row.Acenta,
+      });
+      setModalMode("edit");
+      setShowModal(true);
     },
-    []
+    [modalForm]
   );
 
-  const handleRowClick = useCallback((row: BlacklistData) => {
-    setSelectedRecord(row);
-    setNewRecord({
-      Ad: row.Adi || row.Ad,
-      Soyadi: row.Soy || row.Soyadi,
-      TCKN: row.Tcno || row.TCKN,
-      KimlikNo: row.Kimlik_no || row.KimlikNo,
-      DogumTarihi: row.Dogum_tarihi
-        ? new Date(row.Dogum_tarihi).toISOString().split("T")[0]
-        : row.DogumTarihi,
-      Aciklama: row.Aciklama,
-      Sistem_grubu: row.Sistem_grubu,
-      Otel_kodu: row.Otel_kodu,
-      Ulke_xml: row.Ulke_xml,
-      Acenta: row.Acenta,
-    });
-    setModalMode("edit");
-    setShowModal(true);
-  }, []);
+  const handleModalClose = () => {
+    setShowModal(false);
+    setModalMode("add");
+    setSelectedRecord(null);
+    modalForm.reset(initialForm);
+  };
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAdd = async (formData: BlacklistFormData) => {
     setSaving(true);
     try {
       const payload = {
         db_Id: 9,
         Id: modalMode === "edit" ? selectedRecord?.Id || 0 : 0,
-        Adi: newRecord.Ad || "",
-        Soy: newRecord.Soyadi || "",
-        Aciklama: newRecord.Aciklama || "",
-        Tcno: newRecord.TCKN || "",
-        Kimlik_no: newRecord.KimlikNo || "",
-        Dogum_tarihi: newRecord.DogumTarihi || "",
+        Adi: formData.Ad || "",
+        Soy: formData.Soyadi || "",
+        Aciklama: formData.Aciklama || "",
+        Tcno: formData.TCKN + "" || "",
+        Kimlik_no: formData.KimlikNo || "",
+        Dogum_tarihi: formData.DogumTarihi || "",
         Sistem_tarihi: new Date().toISOString(),
-        Sistem_grubu: newRecord.Sistem_grubu || "",
-        Otel_kodu: newRecord.Otel_kodu || "",
-        Ulke_xml: newRecord.Ulke_xml || "",
-        Acenta: newRecord.Acenta || "",
+        Sistem_grubu: formData.Sistem_grubu || "",
+        Otel_kodu: formData.Otel_kodu || "",
+        Ulke_xml: formData.Ulke_xml || "",
+        Acenta: formData.Acenta || "",
       };
       const result = await api.post<ApiResponse<null>>(
         API_ENDPOINTS.BLACKLIST.ADD,
@@ -189,18 +180,13 @@ export default function BlacklistPage() {
     }
   };
 
-  const handleModalClose = () => {
-    setShowModal(false);
-    setModalMode("add");
-    setSelectedRecord(null);
-    setNewRecord(initialForm);
+  const handleFilterClear = () => {
+    filterForm.reset(initialForm);
+    fetchData(initialForm);
   };
 
-  const memoizedForm = useMemo(() => form, [form]);
-  const memoizedNewRecord = useMemo(() => newRecord, [newRecord]);
-
   useEffect(() => {
-    fetchData(initialForm);
+    fetchData();
   }, []);
 
   return (
@@ -234,39 +220,45 @@ export default function BlacklistPage() {
 
       {isFilterVisible && (
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => {
+            e.preventDefault();
+            fetchData(filterForm.getValues() as BlacklistFormData);
+          }}
           className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"
         >
           <FormField
             name="Ad"
-            value={memoizedForm.Ad || ""}
-            onChange={handleChange}
-            label="blacklist.name"
+            value={filterForm.watch("Ad")}
+            onChange={(e) => filterForm.setValue("Ad", e.target.value)}
+            label={t("blacklist.name")}
           />
           <FormField
             name="Soyadi"
-            value={memoizedForm.Soyadi || ""}
-            onChange={handleChange}
-            label="blacklist.surname"
+            value={filterForm.watch("Soyadi")}
+            onChange={(e) => filterForm.setValue("Soyadi", e.target.value)}
+            label={t("blacklist.surname")}
           />
           <FormField
             name="DogumTarihi"
-            value={memoizedForm.DogumTarihi || ""}
-            onChange={handleChange}
-            label="blacklist.birthDate"
+            value={filterForm.watch("DogumTarihi")}
+            onChange={(e) => filterForm.setValue("DogumTarihi", e.target.value)}
+            label={t("blacklist.birthDate")}
             type="date"
           />
           <FormField
             name="KimlikNo"
-            value={memoizedForm.KimlikNo || ""}
-            onChange={handleChange}
-            label="blacklist.idNumber"
+            value={filterForm.watch("KimlikNo")}
+            onChange={(e) => filterForm.setValue("KimlikNo", e.target.value)}
+            label={t("blacklist.idNumber")}
           />
           <FormField
             name="TCKN"
-            value={memoizedForm.TCKN || ""}
-            onChange={handleChange}
-            label="blacklist.TCKN"
+            value={filterForm.watch("TCKN")}
+            onChange={(e) =>
+              filterForm.setValue("TCKN", Number(e.target.value))
+            }
+            label={t("blacklist.TCKN")}
+            type="number"
           />
           <div className="md:col-span-3 flex gap-2 mt-2">
             <button
@@ -277,7 +269,7 @@ export default function BlacklistPage() {
             </button>
             <button
               type="button"
-              onClick={handleClear}
+              onClick={handleFilterClear}
               className="bg-gray-300 text-gray-700 px-6 py-2 rounded font-semibold text-xs shadow hover:bg-gray-400 transition"
             >
               {t("common.clear")}
@@ -286,7 +278,7 @@ export default function BlacklistPage() {
               type="button"
               onClick={() => {
                 setModalMode("add");
-                setNewRecord(initialForm);
+                modalForm.reset(initialForm);
                 setShowModal(true);
               }}
               className="bg-green-600 text-white px-6 py-2 rounded font-semibold text-xs shadow hover:bg-green-700 transition"
@@ -311,74 +303,93 @@ export default function BlacklistPage() {
               {modalMode === "edit" ? "Kayıt Düzenle" : "Yeni Kayıt Ekle"}
             </h2>
             <form
-              onSubmit={handleAdd}
+              onSubmit={modalForm.handleSubmit(handleAdd)}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               <FormField
                 name="Ad"
-                value={memoizedNewRecord.Ad || ""}
-                onChange={handleNewChange}
-                label="blacklist.name"
+                value={modalForm.watch("Ad")}
+                onChange={(e) => modalForm.setValue("Ad", e.target.value)}
+                label={t("blacklist.name")}
                 required
+                error={modalForm.formState.errors.Ad?.message}
               />
               <FormField
                 name="Soyadi"
-                value={memoizedNewRecord.Soyadi || ""}
-                onChange={handleNewChange}
-                label="blacklist.surname"
+                value={modalForm.watch("Soyadi")}
+                onChange={(e) => modalForm.setValue("Soyadi", e.target.value)}
+                label={t("blacklist.surname")}
                 required
+                error={modalForm.formState.errors.Soyadi?.message}
               />
               <FormField
                 name="TCKN"
-                value={memoizedNewRecord.TCKN || ""}
-                onChange={handleNewChange}
-                label="blacklist.TCKN"
+                value={modalForm.watch("TCKN")}
+                onChange={(e) =>
+                  modalForm.setValue("TCKN", Number(e.target.value))
+                }
+                label={t("blacklist.TCKN")}
+                error={modalForm.formState.errors.TCKN?.message}
+                type="number"
               />
               <FormField
                 name="KimlikNo"
-                value={memoizedNewRecord.KimlikNo || ""}
-                onChange={handleNewChange}
-                label="blacklist.idNumber"
+                value={modalForm.watch("KimlikNo")}
+                onChange={(e) => modalForm.setValue("KimlikNo", e.target.value)}
+                label={t("blacklist.idNumber")}
+                error={modalForm.formState.errors.KimlikNo?.message}
               />
               <FormField
                 name="DogumTarihi"
-                value={memoizedNewRecord.DogumTarihi || ""}
-                onChange={handleNewChange}
-                label="blacklist.birthDate"
+                value={modalForm.watch("DogumTarihi")}
+                onChange={(e) =>
+                  modalForm.setValue("DogumTarihi", e.target.value)
+                }
+                label={t("blacklist.birthDate")}
                 type="date"
                 required
+                error={modalForm.formState.errors.DogumTarihi?.message}
               />
               <FormField
                 name="Aciklama"
-                value={memoizedNewRecord.Aciklama || ""}
-                onChange={handleNewChange}
-                label="blacklist.description"
+                value={modalForm.watch("Aciklama")}
+                onChange={(e) => modalForm.setValue("Aciklama", e.target.value)}
+                label={t("blacklist.description")}
                 type="textarea"
                 rows={3}
+                error={modalForm.formState.errors.Aciklama?.message}
               />
               <FormField
                 name="Sistem_grubu"
-                value={memoizedNewRecord.Sistem_grubu || ""}
-                onChange={handleNewChange}
-                label="blacklist.systemGroup"
+                value={modalForm.watch("Sistem_grubu")}
+                onChange={(e) =>
+                  modalForm.setValue("Sistem_grubu", e.target.value)
+                }
+                label={t("blacklist.systemGroup")}
+                error={modalForm.formState.errors.Sistem_grubu?.message}
               />
               <FormField
                 name="Otel_kodu"
-                value={memoizedNewRecord.Otel_kodu || ""}
-                onChange={handleNewChange}
-                label="blacklist.hotelCode"
+                value={modalForm.watch("Otel_kodu")}
+                onChange={(e) =>
+                  modalForm.setValue("Otel_kodu", e.target.value)
+                }
+                label={t("blacklist.hotelCode")}
+                error={modalForm.formState.errors.Otel_kodu?.message}
               />
               <FormField
                 name="Ulke_xml"
-                value={memoizedNewRecord.Ulke_xml || ""}
-                onChange={handleNewChange}
-                label="blacklist.countryXml"
+                value={modalForm.watch("Ulke_xml")}
+                onChange={(e) => modalForm.setValue("Ulke_xml", e.target.value)}
+                label={t("blacklist.countryXml")}
+                error={modalForm.formState.errors.Ulke_xml?.message}
               />
               <FormField
                 name="Acenta"
-                value={memoizedNewRecord.Acenta || ""}
-                onChange={handleNewChange}
-                label="blacklist.agency"
+                value={modalForm.watch("Acenta")}
+                onChange={(e) => modalForm.setValue("Acenta", e.target.value)}
+                label={t("blacklist.agency")}
+                error={modalForm.formState.errors.Acenta?.message}
               />
               <div className="col-span-2 flex gap-2 mt-2">
                 <button

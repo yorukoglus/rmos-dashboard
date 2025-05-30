@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 
 interface FormFieldProps {
   name: string;
-  value: string | number;
+  value: string | number | undefined;
   onChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -14,6 +14,7 @@ interface FormFieldProps {
   required?: boolean;
   options?: { value: string | number; label: string }[];
   rows?: number;
+  error?: string;
 }
 
 export default function FormField({
@@ -26,6 +27,7 @@ export default function FormField({
   required = false,
   options,
   rows,
+  error,
 }: FormFieldProps) {
   const { t } = useTranslation();
 
@@ -36,7 +38,9 @@ export default function FormField({
           name={name}
           value={value}
           onChange={onChange}
-          className={`border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
+          className={`border ${
+            error ? "border-red-500" : "border-blue-300"
+          } rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
           required={required}
         >
           {options.map((option) => (
@@ -55,7 +59,9 @@ export default function FormField({
           value={value}
           onChange={onChange}
           rows={rows}
-          className={`border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
+          className={`border ${
+            error ? "border-red-500" : "border-blue-300"
+          } rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
           required={required}
         />
       );
@@ -67,7 +73,9 @@ export default function FormField({
         name={name}
         value={value}
         onChange={onChange}
-        className={`border border-blue-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
+        className={`border ${
+          error ? "border-red-500" : "border-blue-300"
+        } rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-400 outline-none ${className}`}
         required={required}
       />
     );
@@ -79,6 +87,7 @@ export default function FormField({
         {label}
       </label>
       {renderInput()}
+      {error && <span className="text-red-500 text-xs mt-1">{error}</span>}
     </div>
   );
 }

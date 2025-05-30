@@ -38,6 +38,7 @@
     "birthDate": "Doğum Tarihi",
     "idNumber": "Kimlik No",
     "tckn": "TCKN",
+    "TCKN": "TCKN",
     "description": "Açıklama",
     "systemGroup": "Sistem Grubu",
     "hotelCode": "Otel Kodu",
