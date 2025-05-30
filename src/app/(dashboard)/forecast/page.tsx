@@ -66,7 +66,27 @@ export default function ForecastPage() {
     try {
       const result = await api.post<ApiResponse<ForecastData[]>>(
         API_ENDPOINTS.FORECAST,
-        { ...params, xtip: Number(params.xtip) }
+        {
+          ...params,
+          xtip: Number(params.xtip),
+
+          db_Id: 9,
+          kon2: "BB",
+          xchkFis_Fazla_otel_10: 0,
+          bas_Yil: 2022,
+          bit_Yil: 2022,
+          fisrci_Kapalioda_10: 0,
+          xRez_C_W: "C",
+          xSistem_Tarihi: "2024-01-01",
+          xAlis_Tarihi: "2024-01-01",
+          sistem_Bas1: "2020-01-01",
+          sistem_Bit1: "2029-01-01",
+          pmdahil_10: 0,
+          tip_1: "001",
+          xFis_Bela_tutar_10: 0,
+          trace_Dus_10: 0,
+          cev_01: null,
+        }
       );
       if (!result || !result.value) {
         throw new Error(t("common.anErrorOccured"));
@@ -80,10 +100,13 @@ export default function ForecastPage() {
     }
   }, [params]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    fetchData();
-  }, []);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      fetchData();
+    },
+    [params]
+  );
 
   useEffect(() => {
     fetchData();
