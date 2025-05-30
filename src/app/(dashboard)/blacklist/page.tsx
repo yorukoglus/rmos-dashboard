@@ -165,8 +165,8 @@ export default function BlacklistPage() {
       if (result?.isSucceded) {
         success(
           modalMode === "edit"
-            ? "Kayıt başarıyla güncellendi."
-            : "Kayıt başarıyla eklendi."
+            ? "blacklist.recordUpdated"
+            : "blacklist.recordAdded"
         );
         fetchData();
         handleModalClose();
