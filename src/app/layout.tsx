@@ -29,7 +29,11 @@ export default function RootLayout({
         <I18nextProvider i18n={i18n}>
           <AuthProvider>
             {!isLoginPage && <Header />}
-            <main className="flex bg-gradient-to-br from-blue-100 to-blue-300">
+            <main
+              className={`flex bg-gradient-to-br from-blue-100 to-blue-300 ${
+                isLoginPage && "h-full"
+              }`}
+            >
               {children}
             </main>
             <Notification />

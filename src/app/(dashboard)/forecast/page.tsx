@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useAuth } from "@/stores/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import {
@@ -44,7 +43,6 @@ type ForecastParams = typeof defaultParams;
 
 export default function ForecastPage() {
   const { t } = useTranslation();
-  const { token } = useAuth();
   const [data, setData] = useState<ForecastData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -71,32 +69,25 @@ export default function ForecastPage() {
         { ...params, xtip: Number(params.xtip) }
       );
       if (!result || !result.value) {
-        throw new Error("API'den geçerli bir yanıt alınamadı");
+        throw new Error(t("common.anErrorOccured"));
       }
       setData(result.value);
     } catch (err: any) {
       console.error("API Hatası:", err);
-      setError(
-        err.message ||
-          "Veri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-      );
+      setError(err.message || t("common.fetchError"));
     } finally {
       setLoading(false);
     }
   }, [params]);
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      fetchData();
-    },
-    [fetchData]
-  );
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    fetchData();
+  }, []);
 
   useEffect(() => {
-    if (token) fetchData();
-    // eslint-disable-next-line
-  }, [token]);
+    fetchData();
+  }, []);
 
   return (
     <div className="max-w-[calc(100vw-47px)] w-full mx-auto m-4">

@@ -76,7 +76,7 @@ export default function FormField({
   return (
     <div className="flex flex-col min-w-[160px]">
       <label className="block text-xs font-semibold mb-1 text-blue-800">
-        {t(label)}
+        {label}
       </label>
       {renderInput()}
     </div>

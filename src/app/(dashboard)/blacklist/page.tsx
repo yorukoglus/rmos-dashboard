@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useAuth } from "@/stores/AuthContext";
 import { API_ENDPOINTS } from "@/types/api";
 import { api } from "@/utils/api";
 import { toDisplayDate } from "@/utils/utils";
@@ -44,7 +43,6 @@ const initialForm: Partial<BlacklistData> = {
 };
 
 export default function BlacklistPage() {
-  const { token } = useAuth();
   const { success, error: showError } = useNotificationStore();
   const [data, setData] = useState<BlacklistData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -79,15 +77,12 @@ export default function BlacklistPage() {
           }
         );
         if (!result || !result.value) {
-          throw new Error("API'den geçerli bir yanıt alınamadı");
+          throw new Error(t("common.anErrorOccured"));
         }
         setData(result.value);
       } catch (err: any) {
         console.error("API Hatası:", err);
-        setError(
-          err.message ||
-            "Veri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
-        );
+        setError(err.message || t("common.fetchError"));
       } finally {
         setLoading(false);
       }
@@ -112,14 +107,14 @@ export default function BlacklistPage() {
       e.preventDefault();
       fetchData(form);
     },
-    [fetchData, form]
+    [form]
   );
 
   const handleClear = useCallback(() => {
     setForm(initialForm);
     setError("");
     fetchData(initialForm);
-  }, [fetchData]);
+  }, []);
 
   const handleNewChange = useCallback(
     (
@@ -205,10 +200,8 @@ export default function BlacklistPage() {
   const memoizedNewRecord = useMemo(() => newRecord, [newRecord]);
 
   useEffect(() => {
-    if (token) {
-      fetchData(initialForm);
-    }
-  }, [token]);
+    fetchData(initialForm);
+  }, []);
 
   return (
     <div className="h-[calc(100vh-72px-2rem)] max-w-[calc(100vw-47px)] w-full bg-white/90 rounded-xl shadow-lg p-6 md:p-10 flex flex-col m-4">

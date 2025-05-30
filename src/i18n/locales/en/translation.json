@@ -14,7 +14,12 @@
     "showFilter": "Show Filters",
     "hideFilter": "Hide Filters",
     "turkish": "Turkish",
-    "english": "English"
+    "english": "English",
+    "anErrorOccured": "An error occurred.",
+    "fetchError": "An error occurred while fetching data. Please try again later.",
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDescription": "The page you are looking for does not exist or has been moved.",
+    "backToHome": "Back to Home"
   },
   "forecast": {
     "title": "Forecast",

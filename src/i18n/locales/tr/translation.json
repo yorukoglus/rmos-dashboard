@@ -14,7 +14,12 @@
     "showFilter": "Filteleri Göster",
     "hideFilter": "Filteleri Gizle",
     "turkish": "Türkçe",
-    "english": "İngilizce"
+    "english": "İngilizce",
+    "anErrorOccured": "Bir hata oluştu.",
+    "fetchError": "Veri alınırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
+    "pageNotFound": "Sayfa Bulunamadı",
+    "pageNotFoundDescription": "Aradığınız sayfa mevcut değil veya taşınmış olabilir.",
+    "backToHome": "Ana Sayfaya Dön"
   },
   "forecast": {
     "title": "Forecast",
